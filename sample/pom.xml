@@ -1,0 +1,265 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.examples.hadoop</groupId>
+  <artifactId>docker-hadoop-example</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <name>docker-hadoop-example</name>
+  <url>http://maven.apache.org</url>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <dependencies>
+    
+       <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-minicluster</artifactId>
+            <version>2.7.2</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-io</groupId>
+                    <artifactId>commons-io</artifactId>
+                </exclusion>
+            </exclusions>  
+        </dependency>
+        
+      
+        
+        
+        <!-- Some care is needed when adding new dependencies with Hadoop.
+         There are lots of libraries on Hadoop's runtime classpath that
+         the client or core POMs don't tell you about. When adding a new
+         dependency, first check Hadoop's lib directory if it's already
+         there. If it is, use the exact same version and set the scope
+         to "provided".
+
+        If there are dependency conflicts you cannot resolve, try setting
+        the HADOOP_USER_CLASSPATH_FIRST environment variable to "true",
+        giving your libraries precedence. -->
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-client</artifactId>
+            <version>2.7.2</version>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+      
+        
+        
+        <!-- The following libraries come with Hadoop but are missing from
+        the client POM. You need them if you want to use LocalJobRunner
+        from the IDE. If you don't you can safely delete them. -->
+        <dependency>
+            <groupId>commons-cli</groupId>
+            <artifactId>commons-cli</artifactId>
+            <version>1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.4</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-httpclient</groupId>
+            <artifactId>commons-httpclient</artifactId>
+            <version>3.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.10</version>
+        </dependency>
+        
+         
+        <dependency>
+            <groupId>org.mongodb.mongo-hadoop</groupId>
+            <artifactId>mongo-hadoop-core</artifactId>
+            <version>2.0.2</version>
+        </dependency> 
+        
+        <dependency>
+            <groupId>org.mongodb.morphia</groupId>
+            <artifactId>morphia</artifactId>
+            <version>1.1.1</version>
+        </dependency>
+      
+      
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.10</version>
+            <scope>test</scope>
+        </dependency>
+        
+    </dependencies>
+    
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.5.1</version>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.3</version>
+                <executions>
+                    <execution>
+                        <id>make-mr</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <descriptors>
+                                <descriptor>${project.basedir}/src/main/resources/assembly/hadoop-mr.xml</descriptor>
+                            </descriptors>
+                            <archive>
+                                <manifest>
+                                    <mainClass>org.examples.hadoop.WordCounter</mainClass>
+                                </manifest>
+                            </archive>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            
+        </plugins>
+    </build>
+    
+    <profiles>
+        <profile>
+            <!-- Generates the app docker image for execution -->
+            <id>app-docker-image</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>io.fabric8</groupId>
+                        <artifactId>docker-maven-plugin</artifactId>
+                        <version>0.20.0</version>
+                        <configuration>
+                            <images>
+                                <image>
+                                    <name>docker-hadoop-example</name>
+                                    <build>
+                                        <from>tail/hadoop:2.7.2</from>
+                                        <assembly>
+                                            <descriptorRef>project</descriptorRef>
+                                            <inline>
+                                                <fileSets>
+                                                    <fileSet>
+                                                        <directory>${basedir}/target</directory>
+                                                        <includes>
+                                                            <include>docker-hadoop-example-1.0-SNAPSHOT-mr.jar</include>
+                                                        </includes>
+                                                        <outputDirectory>/jar</outputDirectory>
+                                                    </fileSet>
+                                                    <fileSet>
+                                                        <directory>${basedir}/src/test/resources/</directory>
+                                                        <includes>
+                                                            <include>text_for_word_count.txt</include>
+                                                        </includes>
+                                                        <outputDirectory>/test-data</outputDirectory>
+                                                    </fileSet>
+                                                </fileSets>
+                                            </inline>
+                                        </assembly>
+                                    </build>
+                                </image>
+                                
+                                <!-- CREATES IMAGE FOR TESTING -->
+                                <image>
+                                    <name>docker-hadoop-example-tests</name>
+                                    <build>
+                                        <from>maven:latest</from>
+                                        <ports> 
+                                            <!-- For remote testing -->
+                                            <port>5005</port>
+                                        </ports>
+                                        <assembly>
+                                            <descriptorRef>project</descriptorRef>
+                                            <inline>
+                                                <fileSets>
+                                                   <fileSet>
+                                                        <directory>${basedir}/src</directory>
+                                                        <includes>
+                                                            <include>**/**</include>
+                                                        </includes>
+                                                        <outputDirectory>code/src</outputDirectory>
+                                                    </fileSet>
+                                                    <fileSet>
+                                                        <directory>${basedir}</directory>
+                                                        <includes>
+                                                            <include>pom.xml</include>
+                                                        </includes>
+                                                        <outputDirectory>code</outputDirectory>
+                                                    </fileSet>
+                                                </fileSets>
+                                            </inline>
+                                        </assembly>
+                                        <volumes>
+                                            <volume>/m2</volume>
+                                        </volumes>
+                                    </build>
+                                </image>
+                            </images>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>docker-build</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>build</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>integration-test</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <version>2.19.1</version>
+                        <executions>
+                            <execution>
+                                <id>integration-test</id>
+                                <phase>integration-test</phase>
+                                <goals>
+                                    <goal>integration-test</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>verify</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>verify</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+    
+</project>

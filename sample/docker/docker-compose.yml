@@ -1,0 +1,75 @@
+# docker-compose build
+# docker-compose up -d
+# docker-compose scale nodemanager=X; # X=integer number --> allows to add more nodes to the hadoop cluster for testing
+
+version: '3'
+services:
+  mongo:
+    image: library/mongo:3.2.12
+    hostname: mongo
+    container_name: mongo
+    ports:
+      - 27017:27017
+    volumes:
+      - ./data/mongodb:/data
+  namenode:
+      image: tail/hadoop:2.7.2
+      container_name: namenode
+      ports: 
+          - "50070:50070"
+          - "9000:9000"
+      command: /usr/local/bin/start-namenode.sh
+      hostname: namenode
+      volumes:
+          - ./data/hadoop:/data
+  datanode:
+      image: tail/hadoop:2.7.2
+      command: hdfs datanode
+      ports:
+          - "50075" # local port dynamically assigned. allows node to be scaled up and down
+          - "50010:50010"
+      links:
+          - namenode
+      hostname: datanode
+      volumes:
+          - ./data/hadoop:/data
+  secondarynamenode:
+      image: tail/hadoop:2.7.2
+      container_name: secondarynamenode
+      command: hdfs secondarynamenode
+      ports:
+          - "50090:50090"
+      links:
+          - namenode
+      hostname: secondarynamenode
+  yarn:
+      image: tail/hadoop:2.7.2
+      container_name: yarn
+      command: start-yarn-historyserver.sh
+      ports:
+          - "8088:8088"
+          - "8042:8042"
+          - "8050:8050"
+          - "19888:19888"
+          - "10020:10020"
+      links:
+          - namenode
+          - datanode
+      hostname: yarn
+  nodemanager:
+      image: tail/hadoop:2.7.2
+      command: yarn nodemanager
+      ports:
+          - "8042" # local port dynamically assigned. allows node to be scaled up and down
+      links:
+          - namenode
+          - datanode
+          - yarn
+      hostname: nodemanager
+  docker-hadoop-example:
+      image: docker-hadoop-example:latest
+      container_name: docker-hadoop-example
+      links:
+          - mongo
+          - yarn 
+          - namenode

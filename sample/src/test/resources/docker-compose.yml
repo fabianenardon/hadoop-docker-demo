@@ -1,0 +1,70 @@
+
+version: '3'
+services:
+  mongo:
+    image: library/mongo:3.2.12
+    hostname: mongo
+    ports:
+      - "27017"
+  namenode:
+      image: tail/hadoop:2.7.2
+      ports: 
+          - "50070"
+          - "9000"
+      command: /usr/local/bin/start-namenode.sh
+      hostname: namenode
+  datanode:
+      image: tail/hadoop:2.7.2
+      command: hdfs datanode
+      ports:
+          - "50075" # local port dynamically assigned. allows node to be scaled up and down
+          - "50010"
+      links:
+          - namenode
+      hostname: datanode
+  secondarynamenode:
+      image: tail/hadoop:2.7.2
+      command: hdfs secondarynamenode
+      ports:
+          - "50090"
+      links:
+          - namenode
+      hostname: secondarynamenode
+  yarn:
+      image: tail/hadoop:2.7.2
+      command: start-yarn-historyserver.sh
+      ports:
+          - "8088"
+          - "8042"
+          - "8050"
+          - "19888"
+          - "10020"
+      links:
+          - namenode
+          - datanode
+          - mongo
+      hostname: yarn
+  nodemanager:
+      image: tail/hadoop:2.7.2
+      command: yarn nodemanager
+      ports:
+          - "8042" # local port dynamically assigned. allows node to be scaled up and down
+      links:
+          - namenode
+          - datanode
+          - yarn
+          - mongo
+      hostname: nodemanager
+
+  docker-hadoop-example:
+      image: docker-hadoop-example:latest
+      links:
+          - mongo
+          - yarn 
+          - namenode
+  docker-hadoop-example-tests:
+      image: docker-hadoop-example-tests:latest
+      volumes:
+          - ~/.m2:/m2
+      links:
+          - mongo
