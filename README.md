@@ -3,7 +3,7 @@ A sample application with hadoop and docker.
 
 This sample application shows how to use Docker to create a Hadoop cluster and a Big Data application in Java. It highlights several concepts like service scale, dynamic port allocation, container links, integration tests, debugging, etc.
 
-## Running with one Hadoop node:
+## Running Hadoop and our application:
 
 
 Compile the application and generate the docker images
