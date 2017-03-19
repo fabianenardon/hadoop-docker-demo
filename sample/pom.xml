@@ -209,6 +209,13 @@
                                                         </includes>
                                                         <outputDirectory>code</outputDirectory>
                                                     </fileSet>
+                                                    <fileSet>
+                                                        <directory>${basedir}/src/test/resources</directory>
+                                                        <includes>
+                                                            <include>settings.xml</include>
+                                                        </includes>
+                                                        <outputDirectory>/m2</outputDirectory>
+                                                    </fileSet>
                                                 </fileSets>
                                             </inline>
                                         </assembly>
