@@ -65,6 +65,6 @@ services:
   docker-hadoop-example-tests:
       image: docker-hadoop-example-tests:latest
       volumes:
-          - ~/.m2:/m2
+          - ~/.m2/repository:/m2/repository
       links:
           - mongo
