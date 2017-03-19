@@ -11,7 +11,7 @@ services:
     ports:
       - 27017:27017
     volumes:
-      - ./data/mongodb:/data
+      - ./data/mongodb:/data/db
   namenode:
       image: tail/hadoop:2.7.2
       container_name: namenode

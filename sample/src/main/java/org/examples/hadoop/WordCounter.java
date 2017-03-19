@@ -111,27 +111,44 @@ public class WordCounter extends MongoTool {
      */
     public static void main(String[] args) throws Exception {
         
+        String namenode = "hdfs://localhost:9000";
+        String folder = "/files";
+        String mongoHost = "localhost:27017";
+        String jobTracker = "localhost";
+        
+        if (args.length > 3) {
+            jobTracker = args[3];
+        } 
+        if (args.length > 2) {
+            mongoHost = args[2];
+        }
+        if (args.length > 1) {
+            folder = args[1];
+        }
+        if (args.length > 0) {
+            namenode = args[0];
+        }
+        
         if (args.length < 4) {
             System.out.println("USAGE: hadoop -jar docker-hadoop-example-1.0-SNAPSHOT-precombined-mr.jar <HDFS_ADDRESS> <PATH_TO_HDFS_WHERE_TO_FIND_FILES_TO_PROCESS> <MONGO_SERVER> <YARN_ADDRESS_AND_PORT>");
-            System.out.println("       If you are running inside docker, run with hadoop -jar docker-hadoop-example-1.0-SNAPSHOT-precombined-mr.jar hdfs://namenode:9000 /files mongo yarn:8050");
-
-            System.exit(1);
+            System.out.println("       If you are running inside docker, run with hadoop -jar docker-hadoop-example-1.0-SNAPSHOT-mr.jar hdfs://namenode:9000 /files mongo yarn:8050");
+            System.out.println("RUNNING WITH "+namenode+" "+folder+" "+mongoHost+" "+jobTracker);
         }
 
         Configuration config = new Configuration();
-        config.set("fs.defaultFS", args[0]);
+        config.set("fs.defaultFS", namenode);
         config.set("mapred.map.tasks.speculative.execution", "false");
         config.set("mapred.reduce.tasks.speculative.execution", "false");
-        config.set("mapreduce.framework.name", "yarn");
+        // It can be local or yarn. Use local for local test
+    //    config.set("mapreduce.framework.name", "yarn");
         
         // Important: set this to be able to run on hadoop on docker installed in the host
         config.set("dfs.client.use.datanode.hostname", "true");
         // yarn address (we are mapping to the yarn docker)
-        config.set("yarn.resourcemanager.address", args[3]);
+        config.set("yarn.resourcemanager.address", jobTracker);
+        config.set("mapreduce.jobtracker.address", jobTracker);
         
-        
-        
-        System.exit(ToolRunner.run(config, new WordCounter(), args));
+        System.exit(ToolRunner.run(config, new WordCounter(), new String[] {namenode, folder, mongoHost, jobTracker}));
 
     }
 

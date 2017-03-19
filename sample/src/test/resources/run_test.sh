@@ -19,7 +19,7 @@ docker-compose --file src/test/resources/docker-compose.yml run docker-hadoop-ex
 
 # Run our integration tests
 docker-compose --file src/test/resources/docker-compose.yml run docker-hadoop-example-tests mvn -f /maven/code/pom.xml -Dmaven.repo.local=/m2/repository -Pintegration-test verify 
-# If you want to run to remote debug tests, run instead
+# If you want to remote debug tests, run instead
 # docker run -v ~/.m2:/m2 -p 5005:5005 --link mongo:mongo --net resources_default docker-hadoop-example-tests mvn -f /maven/code/pom.xml -Dmaven.repo.local=/m2/repository -Pintegration-test verify -Dmaven.failsafe.debug
 
 
