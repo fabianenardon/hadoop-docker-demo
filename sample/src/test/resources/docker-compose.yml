@@ -54,7 +54,6 @@ services:
           - datanode
           - yarn
           - mongo
-      hostname: nodemanager
 
   docker-hadoop-example:
       image: docker-hadoop-example:latest
