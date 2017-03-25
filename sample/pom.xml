@@ -157,7 +157,7 @@
                                 <image>
                                     <name>docker-hadoop-example</name>
                                     <build>
-                                        <from>tail/hadoop:2.7.2</from>
+                                        <from>tailtarget/hadoop:2.7.2</from>
                                         <assembly>
                                             <descriptorRef>project</descriptorRef>
                                             <inline>
