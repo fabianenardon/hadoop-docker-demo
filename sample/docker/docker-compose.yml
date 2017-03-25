@@ -13,7 +13,7 @@ services:
     volumes:
       - ./data/mongodb:/data/db
   namenode:
-      image: tail/hadoop:2.7.2
+      image: tailtarget/hadoop:2.7.2
       container_name: namenode
       ports: 
           - "50070:50070"
@@ -23,7 +23,7 @@ services:
       volumes:
           - ./data/hadoop:/data
   datanode:
-      image: tail/hadoop:2.7.2
+      image: tailtarget/hadoop:2.7.2
       command: hdfs datanode
       ports:
           - "50075" # local port dynamically assigned. allows node to be scaled up and down
@@ -34,7 +34,7 @@ services:
       volumes:
           - ./data/hadoop:/data
   secondarynamenode:
-      image: tail/hadoop:2.7.2
+      image: tailtarget/hadoop:2.7.2
       container_name: secondarynamenode
       command: hdfs secondarynamenode
       ports:
@@ -43,7 +43,7 @@ services:
           - namenode
       hostname: secondarynamenode
   yarn:
-      image: tail/hadoop:2.7.2
+      image: tailtarget/hadoop:2.7.2
       container_name: yarn
       command: start-yarn-historyserver.sh
       ports:
@@ -57,7 +57,7 @@ services:
           - datanode
       hostname: yarn
   nodemanager:
-      image: tail/hadoop:2.7.2
+      image: tailtarget/hadoop:2.7.2
       command: yarn nodemanager
       ports:
           - "8042" # local port dynamically assigned. allows node to be scaled up and down
