@@ -65,7 +65,6 @@ services:
           - namenode
           - datanode
           - yarn
-      hostname: nodemanager
   docker-hadoop-example:
       image: docker-hadoop-example:latest
       container_name: docker-hadoop-example
